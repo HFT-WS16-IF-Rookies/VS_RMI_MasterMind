@@ -1,6 +1,7 @@
 package server;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.List;
 
 import client.IClient;
@@ -10,19 +11,19 @@ import client.IClient;
  */
 public interface IMasterMindGame extends Remote {
 
-public List<IClient> getClients();
+public List<IClient> getClients() throws RemoteException;
 	
-	public void addClient(IClient aClient);
+	public void addClient(IClient aClient) throws RemoteException;
 	
-	public void removeClient(IClient aClient);
+	public void removeClient(IClient aClient) throws RemoteException;
 	
-	public IClient getCreatingClient();
+	public IClient getCreatingClient() throws RemoteException;
 	
-	public int[] checkNumbers(IClient aClient, int[] aGuessedDigits);
+	public int[] checkNumbers(IClient aClient, int[] aGuessedDigits) throws RemoteException;
 	
-	public int getGameID();
+	public int getGameID() throws RemoteException;
 	
-	public boolean startGame();
+	public boolean startGame() throws RemoteException;
 	
-	public boolean isGameRunning();
+	public boolean isGameRunning() throws RemoteException;
 }

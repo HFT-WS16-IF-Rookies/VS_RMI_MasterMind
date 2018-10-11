@@ -1,8 +1,10 @@
 package server;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -10,12 +12,14 @@ import java.util.List;
 import client.IClient;
 
 
-public class MasterMindServer implements IMasterMindServer {
+public class MasterMindServer extends UnicastRemoteObject implements IMasterMindServer {
 
 	private static Registry reg;
 	public List<IMasterMindGame> mActiveGames;
+	private static final long serialVersionUID = 1l;
 
-	public MasterMindServer() {
+	public MasterMindServer() throws RemoteException {
+		super();
 		mActiveGames = new ArrayList<IMasterMindGame>();
 	}
 
@@ -25,8 +29,8 @@ public class MasterMindServer implements IMasterMindServer {
             reg = LocateRegistry.createRegistry(1099);
             reg.rebind(IMasterMindServer.class.getName(), new MasterMindServer());
             System.out.println("MasterMindServer successfully bound to Registry");
-            reg.rebind(IMasterMindGame.class.getName(), new MasterMindGame());
-            System.out.println("MasterMindServer successfully bound to Registry");
+//            reg.rebind(IMasterMindGame.class.getName(), new MasterMindGame());
+//            System.out.println("MasterMindGame successfully bound to Registry");
         }
         catch (RemoteException e)
         {
@@ -41,11 +45,13 @@ public class MasterMindServer implements IMasterMindServer {
 	 * @param the name of the player to initially join the new game
 	 * 
 	 */
-	public int createNewGame(IClient aClient) {
+	public int createNewGame(IClient aClient) throws RemoteException {
 		MasterMindGame myGame = new MasterMindGame();
 		myGame.addClient(aClient);
 		mActiveGames.add(myGame);
 		System.out.println("Game "+myGame.getGameID()+" created by "+aClient.getUsername());
+		reg.rebind(IMasterMindGame.class.getName() + myGame.getGameID(), (IMasterMindGame) myGame);
+      	System.out.println("MasterMindGame ID: " + myGame.getGameID() + " successfully bound to Registry");
 		return myGame.getGameID();
 	}
 
@@ -60,7 +66,7 @@ public class MasterMindServer implements IMasterMindServer {
 	 * @return the number of exact matches and the number of digits appearing
 	 *         anywhere in the solution as an integer-array of length 2
 	 */
-	public int[] checkNumbers(int gameID, IClient aClient, int[] aGuessedDigits) {
+	public int[] checkNumbers(int gameID, IClient aClient, int[] aGuessedDigits) throws RemoteException {
 
 		int[] result = {0,0};
 		
@@ -76,12 +82,12 @@ public class MasterMindServer implements IMasterMindServer {
 	}
 
 	@Override
-	public List<IMasterMindGame> getCurrentGames() {
+	public List<IMasterMindGame> getCurrentGames() throws RemoteException {
 		return mActiveGames;
 	}
 
 	@Override
-	public boolean joinGame(int gameID, IClient aClient) {
+	public boolean joinGame(int gameID, IClient aClient) throws RemoteException {
 		for (IMasterMindGame mmg : mActiveGames) { //search game
 			if(mmg.getGameID() == gameID) { //game found
 				if(mmg.isGameRunning()) {
@@ -100,7 +106,7 @@ public class MasterMindServer implements IMasterMindServer {
 	}
 
 	@Override
-	public void deleteGame(int aGameID, IClient aCreatingClient) {
+	public void deleteGame(int aGameID, IClient aCreatingClient) throws RemoteException {
 		IMasterMindGame vGame=null;
 		Iterator<IMasterMindGame> vGameIterator=mActiveGames.iterator();
 		//for each loop will cause concurrent modification exception when deleting
@@ -119,7 +125,7 @@ public class MasterMindServer implements IMasterMindServer {
 
 
 	@Override
-	public void disconnect(IClient aClient) {
+	public void disconnect(IClient aClient) throws RemoteException {
 		for(IMasterMindGame mmg : mActiveGames) {
 			if(mmg.getClients().contains(aClient)) {
 				mmg.removeClient(aClient);
@@ -129,7 +135,7 @@ public class MasterMindServer implements IMasterMindServer {
 	}
 
 	@Override
-	public boolean startGame(int gameID) {
+	public boolean startGame(int gameID) throws RemoteException {
 		for(IMasterMindGame mmg : mActiveGames) {
 			if(mmg.getGameID() == gameID) {
 				return mmg.startGame();

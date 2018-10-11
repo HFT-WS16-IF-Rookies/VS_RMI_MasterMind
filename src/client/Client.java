@@ -4,61 +4,62 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-
-import de.hft_stuttgart.rmi.IDateProvider;
 import server.IMasterMindGame;
 import server.IMasterMindServer;
 import server.MasterMindServer;
 
-public class Client implements IClient {
+public class Client extends UnicastRemoteObject implements IClient {
+
+	private static final long serialVersionUID = 1l;
+
+	public Client() throws RemoteException
+	{
+		super();
+	}
 
 	public boolean playGame = false;
 	private boolean endGame = false;
 	
 	@Override
-	public boolean isReady() {
+	public boolean isReady() throws RemoteException {
 		// TODO Auto-generated method stub
 		return true;
 	}
 
 	@Override
-	public String getUsername() {
+	public String getUsername() throws RemoteException {
 		// TODO Auto-generated method stub
 		return "Erik";
 	}
 
 	@Override
-	public void playGame() {
+	public void playGame() throws RemoteException {
 		playGame = true;
 	}
 
 	@Override
-	public void endGame(String message) {
+	public void endGame(String message) throws RemoteException {
 		endGame  = true;
 	}
 
 
 	public static void main(String[] args) {
-		
-		
-        try
-		{
-        	Registry vRegistry = LocateRegistry.getRegistry();
-			IClient vDateProvider = (IClient) vRegistry.lookup(IClient.class.getName());
-		} catch (RemoteException | NotBoundException e1)
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
+
 		Scanner in = new Scanner(System.in);
 		//locally: create a server
-		MasterMindServer server = new MasterMindServer();
-		Client client = new Client();
-		//while the user wishes
+		try
+		{
+			Registry reg = LocateRegistry.getRegistry();
+			IMasterMindServer server = (IMasterMindServer) reg.lookup(IMasterMindServer.class.getName());
+
+			Client client = new Client();
+			reg.rebind(IClient.class.getName() + client.getUsername(), (IClient) client);
+
+			//while the user wishes
 			//create a game
 			System.out.println("creating game");
 			int gameID = server.createNewGame(client);
@@ -107,8 +108,15 @@ public class Client implements IClient {
 				System.out.println(result[0] + " Zahlen richtig geraten, " + result[1] + " falsch platziert");
 			}
 			while(!client.endGame && result[0] != IMasterMindServer.BOARD_WIDTH);
+			server.deleteGame(gameID, client);
+		}
+		catch (RemoteException | NotBoundException e)
+		{
+			e.printStackTrace();
+		}
 		//ask for a possible next game
 			in.close();
+			System.exit(0);
 	}
 
 }

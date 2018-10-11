@@ -3,15 +3,18 @@
  */
 package client;
 
-public interface IClient{
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface IClient extends Remote{
 	
-	public boolean isReady(); //return if the client is ready
+	public boolean isReady() throws RemoteException; //return if the client is ready
 	
-	public String getUsername(); //returns the username of the client
+	public String getUsername() throws RemoteException; //returns the username of the client
 	
-	public void playGame(); //tells the client that the multiplayer-game starts
+	public void playGame() throws RemoteException; //tells the client that the multiplayer-game starts
 	
-	public void endGame(String message); //tells the client that the multiplayer-game ended
+	public void endGame(String message) throws RemoteException; //tells the client that the multiplayer-game ended
 
 	
 
