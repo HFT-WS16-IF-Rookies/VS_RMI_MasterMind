@@ -24,6 +24,8 @@ public class Client extends UnicastRemoteObject implements IClient
 
 	public boolean playGame = false;
 	private boolean endGame = false;
+	private static int nextPlayerID = 0;
+	private int playerID = ++nextPlayerID;
 
 	@Override
 	public boolean isReady() throws RemoteException
@@ -37,6 +39,12 @@ public class Client extends UnicastRemoteObject implements IClient
 	{
 		// TODO Auto-generated method stub
 		return "Erik";
+	}
+
+	@Override
+	public int getPlayerID() throws RemoteException
+	{
+		return playerID;
 	}
 
 	@Override

@@ -13,6 +13,8 @@ public interface IClient extends Remote
 
 	public String getUsername() throws RemoteException; // returns the username of the client
 
+	public int getPlayerID() throws RemoteException;
+
 	public void playGame() throws RemoteException; // tells the client that the multiplayer-game starts
 
 	public void endGame(String message) throws RemoteException; // tells the client that the multiplayer-game ended

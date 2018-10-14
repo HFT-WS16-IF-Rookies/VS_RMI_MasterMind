@@ -49,6 +49,7 @@ public class MasterMindServer extends UnicastRemoteObject implements IMasterMind
 	public int createNewGame(IClient aClient) throws RemoteException
 	{
 		MasterMindGame myGame = new MasterMindGame();
+		myGame.setCreatingClient(aClient);
 		myGame.addClient(aClient);
 		mActiveGames.add(myGame);
 		System.out.println("Game " + myGame.getGameID() + " created by " + aClient.getUsername());
@@ -79,7 +80,7 @@ public class MasterMindServer extends UnicastRemoteObject implements IMasterMind
 			{ // find the game
 				if (!mmg.getClients().contains(aClient))
 				{
-					// throw new Exception("Client not a member of the game!");
+					System.out.println("oh je :/");
 				}
 				return mmg.checkNumbers(aClient, aGuessedDigits); // Check the guessed digits
 			}
@@ -128,7 +129,7 @@ public class MasterMindServer extends UnicastRemoteObject implements IMasterMind
 			vGame = vGameIterator.next();
 			if (vGame.getGameID() == aGameID)
 			{
-				if (vGame.getCreatingClient() == aCreatingClient)
+				if (vGame.getCreatingClient().getPlayerID() == aCreatingClient.getPlayerID())
 				{
 					vGameIterator.remove();
 				} else
