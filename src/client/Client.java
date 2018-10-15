@@ -16,6 +16,8 @@ public class Client extends UnicastRemoteObject implements IClient
 {
 
 	private static final long serialVersionUID = 1l;
+	private static Registry reg;
+	private static IMasterMindServer server;
 
 	public Client() throws RemoteException
 	{
@@ -24,8 +26,6 @@ public class Client extends UnicastRemoteObject implements IClient
 
 	public boolean playGame = false;
 	private boolean endGame = false;
-	private static int nextPlayerID = 0;
-	private int playerID = ++nextPlayerID;
 
 	@Override
 	public boolean isReady() throws RemoteException
@@ -42,12 +42,6 @@ public class Client extends UnicastRemoteObject implements IClient
 	}
 
 	@Override
-	public int getPlayerID() throws RemoteException
-	{
-		return playerID;
-	}
-
-	@Override
 	public void playGame() throws RemoteException
 	{
 		playGame = true;
@@ -59,23 +53,13 @@ public class Client extends UnicastRemoteObject implements IClient
 		endGame = true;
 	}
 
-	public static void main(String[] args)
+	public void run()
 	{
-
 		Scanner in = new Scanner(System.in);
-		// locally: create a server
 		try
 		{
-			Registry reg = LocateRegistry.getRegistry();
-			IMasterMindServer server = (IMasterMindServer) reg.lookup(IMasterMindServer.class.getName());
-
-			Client client = new Client();
-			reg.rebind(IClient.class.getName() + client.getUsername(), (IClient) client);
-
-			// while the user wishes
-			// create a game
 			System.out.println("creating game");
-			int gameID = server.createNewGame(client);
+			int gameID = server.createNewGame(this);
 
 			// start the game
 			server.startGame(gameID);
@@ -83,7 +67,7 @@ public class Client extends UnicastRemoteObject implements IClient
 			int[] result;
 			do
 			{
-				while (!client.playGame)
+				while (!playGame)
 					;
 				System.out.println(
 						"Rate " + IMasterMindServer.BOARD_WIDTH + " Zahlen von 1 bis " + IMasterMindServer.MAX_DIGIT);
@@ -116,16 +100,32 @@ public class Client extends UnicastRemoteObject implements IClient
 					}
 				}
 
-				result = server.checkNumbers(gameID, client, guess);
+				result = server.checkNumbers(gameID, this, guess);
 				System.out.println(result[0] + " Zahlen richtig geraten, " + result[1] + " falsch platziert");
-			} while (!client.endGame && result[0] != IMasterMindServer.BOARD_WIDTH);
-			server.deleteGame(gameID, client);
-		} catch (RemoteException | NotBoundException e)
+			} while (!endGame && result[0] != IMasterMindServer.BOARD_WIDTH);
+			server.deleteGame(gameID, this);
+		} catch (RemoteException e)
 		{
 			e.printStackTrace();
 		}
 		// ask for a possible next game
 		in.close();
+
+	}
+
+	public static void main(String[] args)
+	{
+		// locally: create a server
+		try
+		{
+			reg = LocateRegistry.getRegistry();
+			server = (IMasterMindServer) reg.lookup(IMasterMindServer.class.getName());
+			IClient client = new Client();
+			((Client) client).run();
+		} catch (RemoteException | NotBoundException e)
+		{
+			e.printStackTrace();
+		}
 		System.exit(0);
 	}
 

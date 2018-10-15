@@ -22,9 +22,10 @@ public class MasterMindGame extends UnicastRemoteObject implements IMasterMindGa
 	private IClient mCreatingClient;
 	private List<IClient> mClients;
 
-	public MasterMindGame() throws RemoteException
+	public MasterMindGame(IClient aCreatingClient) throws RemoteException
 	{
 		super();
+		this.mCreatingClient = aCreatingClient;
 		mGameID = mLastUsedGameID++;
 		mClients = new ArrayList<IClient>();
 

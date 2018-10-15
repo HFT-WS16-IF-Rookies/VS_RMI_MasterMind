@@ -8,6 +8,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import client.IClient;
 
@@ -48,13 +49,12 @@ public class MasterMindServer extends UnicastRemoteObject implements IMasterMind
 	 */
 	public int createNewGame(IClient aClient) throws RemoteException
 	{
-		MasterMindGame myGame = new MasterMindGame();
-		myGame.setCreatingClient(aClient);
+		MasterMindGame myGame = new MasterMindGame(aClient);
 		myGame.addClient(aClient);
 		mActiveGames.add(myGame);
 		System.out.println("Game " + myGame.getGameID() + " created by " + aClient.getUsername());
-		reg.rebind(IMasterMindGame.class.getName() + myGame.getGameID(), (IMasterMindGame) myGame);
-		System.out.println("MasterMindGame ID: " + myGame.getGameID() + " successfully bound to Registry");
+//		reg.rebind(IMasterMindGame.class.getName() + myGame.getGameID(), (IMasterMindGame) myGame);
+//		System.out.println("MasterMindGame ID: " + myGame.getGameID() + " successfully bound to Registry");
 		return myGame.getGameID();
 	}
 
@@ -129,7 +129,14 @@ public class MasterMindServer extends UnicastRemoteObject implements IMasterMind
 			vGame = vGameIterator.next();
 			if (vGame.getGameID() == aGameID)
 			{
-				if (vGame.getCreatingClient().getPlayerID() == aCreatingClient.getPlayerID())
+				/**
+				 * using Objects.equals instead of comparing the references works fine.
+				 * in the debugging I saw two different Proxy Id's
+				 * in vGame.getCreatingClient() and aCreatingClient even though it's all
+				 * the same client instance.
+				 */
+//				if (vGame.getCreatingClient() == aCreatingClient)
+				if (Objects.equals(vGame.getCreatingClient(), aCreatingClient))
 				{
 					vGameIterator.remove();
 				} else
